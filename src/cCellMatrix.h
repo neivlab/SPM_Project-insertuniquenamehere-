@@ -46,6 +46,10 @@ private:
     // the cell matrix is a container for a 2D array of cells
     sCell** mp_cells{ nullptr };
 
+    std::vector <std::vector<sCell>> v_cells;
+
+
+
     // grid drawing data
     int	m_cellsWidth{ 16 };
     int m_cellsHeight{ 16 };

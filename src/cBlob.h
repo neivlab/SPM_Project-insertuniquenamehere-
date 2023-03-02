@@ -7,8 +7,11 @@ class cBlob :
 public:
     cBlob();
     virtual ~cBlob() = default;
-    virtual cLife* spawn(int x, int y) override;     // note - each class that derives from cLife must override spawn()
     virtual void draw();
+    
+    static const std::string  m_LifeName;
+    static cLife* spawn(int x, int y);     // note - each class that derives from cLife should have its own spawn()
+
 
 protected:
     std::string m_name{ "Blob"};               // name of this life

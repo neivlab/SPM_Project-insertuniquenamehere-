@@ -7,7 +7,7 @@
 int sCell::ms_count = 0;
 
 //--------------------------------------------------------------
-// constructor for the cell - unconventional but valid
+// constructor for the cell - unconventional but valid for structures
 sCell::sCell()
 {
     // a cell has a life object in it - allocated on creation
@@ -56,14 +56,28 @@ void sCell::draw()
 // cCellMatrix constructor
 //  allocate a 2d array of cells; this actually means an array of arrays of (width) cells
 cCellMatrix::cCellMatrix(int width, int height)
-    : m_cellsWidth{ width / CELL_SIZE }, m_cellsHeight{ height / CELL_SIZE }
+    : m_cellsWidth{ width / CELL_SIZE }, m_cellsHeight{ height / CELL_SIZE }, 
+    v_cells{ m_cellsHeight, std::vector<sCell>{ (const unsigned int)m_cellsWidth } }
 {
+#if 0
     // allocate the matrix of cells 
-    mp_cells = new sCell * [m_cellsHeight];
+    mp_cells = new sCell* [m_cellsHeight];  // allocate an array of pointers to cells
     // pointer voodoo... have to allocate all the cells in a big block, the assign to each row
     mp_cells[0] = new sCell[m_cellsWidth * m_cellsHeight]();
     for (int r = 1; r < m_cellsHeight; r++)
         mp_cells[r] = mp_cells[r - 1] + m_cellsWidth;
+#endif
+
+    
+//    std::vector <std::vector<sCell>> v_cells(m_cellsHeight, std::vector<sCell>(m_cellsWidth));
+    for (auto r = 0; r < m_cellsHeight; r++)
+    {
+        for (auto c = 0; c < m_cellsWidth; c++)
+        {
+            mp_cells[r][c].setup(c * CELL_SIZE + CELL_SIZE / 2, r * CELL_SIZE + CELL_SIZE / 2);
+        }
+    }
+
 }
 
 //--------------------------------------------------------------

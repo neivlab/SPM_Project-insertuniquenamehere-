@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#include <algorithm>
 #include "ofMain.h"
 #include "cLife.h"
 
@@ -10,10 +11,17 @@ int static pos2cell(int i)
 }
 #endif
 
-std::string cLife::ms_lifeName{ "life" };
+const std::string   cLife::mk_LifeName{ "life" };
+const int           cLife::mk_MaxLife{ 1 };
 
 //--------------------------------------------------------------
 cLife::cLife()
+{
+}
+
+//--------------------------------------------------------------
+cLife::cLife(int x, int y)
+    : m_xPos{ x }, m_yPos{y}
 {
 }
 
@@ -30,8 +38,8 @@ void cLife::draw()
 //--------------------------------------------------------------
 cLife* cLife::spawn(int x, int y)
 {
-    cLife* pLife = new cLife;
-    pLife->setPosition(x + ofRandom(-20, 20), y + ofRandom(-20, 20));
+    cLife* pLife = new cLife(x,y);
+    pLife->addHealth(1);
     return pLife;
 }
 
@@ -102,6 +110,8 @@ void cLife::destroy()
 int  cLife::addHealth(int health) 
 { 
     m_health += health;
+    // for base life, limit health to 0 or 1
+    m_health = (m_health < 0) ? 0 : (m_health > mk_MaxLife) ? mk_MaxLife : m_health;
     return m_health;
 }
 
