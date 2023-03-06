@@ -12,17 +12,38 @@ int static pos2cell(int i)
 #endif
 
 const std::string   cLife::mk_LifeName{ "life" };
-const int           cLife::mk_MaxLife{ 1 };
-
-//--------------------------------------------------------------
-cLife::cLife()
-{
-}
+//const int           cLife::mk_MaxLife{ 1 };
 
 //--------------------------------------------------------------
 cLife::cLife(int x, int y)
     : m_xPos{ x }, m_yPos{y}
 {
+}
+
+//--------------------------------------------------------------
+cLife::~cLife()
+{
+    m_health = -1;
+}
+
+//--------------------------------------------------------------
+cLife::cLife(const cLife& other)
+    : cLife{other.m_xPos, other.m_yPos}
+{
+}
+
+//--------------------------------------------------------------
+cLife& cLife::operator=(const cLife& other)
+{
+    if (this == &other)
+        return *this;
+    this->m_health = other.m_health;
+    this->m_name = other.m_name;
+    this->m_xPos = other.m_xPos;
+    this->m_yPos = other.m_yPos;
+    this->m_drawSize = other.m_drawSize;
+    this->m_color = other.m_color;
+    return *this;
 }
 
 //--------------------------------------------------------------
@@ -33,14 +54,6 @@ void cLife::draw()
     ofFill();
     ofSetColor(m_color);
     ofDrawRectangle(m_xPos - m_drawSize * .5, m_yPos - m_drawSize * .5, m_drawSize, m_drawSize);
-}
-
-//--------------------------------------------------------------
-cLife* cLife::spawn(int x, int y)
-{
-    cLife* pLife = new cLife(x,y);
-    pLife->addHealth(1);
-    return pLife;
 }
 
 //--------------------------------------------------------------
@@ -128,3 +141,18 @@ void cLife::getPosition(int& x, int& y)
     x = m_xPos;
     y = m_yPos;
 }
+
+//--------------------------------------------------------------
+void  cLife::setupQuery(cCellQuery& query)
+{
+    ms_query = &query;
+}
+
+//--------------------------------------------------------------
+cLife* cLife::spawn(int x, int y)
+{
+    cLife* pLife = new cLife(x, y);
+    pLife->addHealth(1);
+    return pLife;
+}
+

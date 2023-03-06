@@ -5,7 +5,7 @@ class cBlob :
     public cLife
 {
 public:
-    cBlob();
+    cBlob(int xpos, int ypos);
     virtual ~cBlob() = default;
     virtual void draw();
     

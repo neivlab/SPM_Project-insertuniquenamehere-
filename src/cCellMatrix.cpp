@@ -3,20 +3,27 @@
 #include "cCellMatrix.h"
 #include "cLife.h"
 
-// definition of the static member
-int sCell::ms_count = 0;
-
 //--------------------------------------------------------------
-// constructor for the cell - unconventional but valid for structures
-sCell::sCell()
+// default constructor for the cell - unconventional but valid for structures
+cCellMatrix::cCell::cCell()
 {
-    // a cell has a life object in it - allocated on creation
-    mp_life = new cLife;
-    m_idx = sCell::ms_count++;
 }
 
 //--------------------------------------------------------------
-sCell::~sCell()
+// preferred constructor for the cell - xy centre can be set here
+cCellMatrix::cCell::cCell(int xCentre, int yCentre)
+    : m_xCentre{ xCentre }, m_yCentre{ yCentre }
+{
+}
+
+//--------------------------------------------------------------
+cCellMatrix::cCell::cCell(const cCell& other)
+    : cCellMatrix::cCell{ other.m_xCentre, other.m_yCentre }
+{
+}
+
+//--------------------------------------------------------------
+cCellMatrix::cCell::~cCell()
 {
     // when a cell is destroyed, free any allocated life too
     if (mp_life)
@@ -27,78 +34,48 @@ sCell::~sCell()
 }
 
 //--------------------------------------------------------------
-void sCell::setup(int x, int y)
+void cCellMatrix::cCell::setup(int xCentre, int yCentre)
 {
-    // get the x,y location of the cell's centre and pass to the life
-    mp_life->setPosition(x, y);
-    m_idx = sCell::ms_count++;
+    m_xCentre = xCentre;
+    m_yCentre = yCentre;
+    // a cell must have a life object in it 
+    mp_life = new cLife(m_xCentre, m_yCentre);
 }
 
 //--------------------------------------------------------------
-void sCell::reset(int x, int y)
+void cCellMatrix::cCell::reset()
 {
     if (mp_life)
     {
         delete mp_life;
-        mp_life = new cLife;
-        setup(x, y);
+        mp_life = new cLife(m_xCentre, m_yCentre);
     }
 }
-
-//--------------------------------------------------------------
-void sCell::draw()
-{
-    mp_life->draw();
-}
-
 
 //--------------------------------------------------------------
 // cCellMatrix constructor
-//  allocate a 2d array of cells; this actually means an array of arrays of (width) cells
+//  initialize the 2d array of cells; this actually means an array of arrays of (width) cells
 cCellMatrix::cCellMatrix(int width, int height)
     : m_cellsWidth{ width / CELL_SIZE }, m_cellsHeight{ height / CELL_SIZE }, 
-    v_cells{ m_cellsHeight, std::vector<sCell>{ (const unsigned int)m_cellsWidth } }
+    m_cells{ m_cellsHeight, std::vector<cCell>{ (const unsigned int)m_cellsWidth} }
 {
-#if 0
-    // allocate the matrix of cells 
-    mp_cells = new sCell* [m_cellsHeight];  // allocate an array of pointers to cells
-    // pointer voodoo... have to allocate all the cells in a big block, the assign to each row
-    mp_cells[0] = new sCell[m_cellsWidth * m_cellsHeight]();
-    for (int r = 1; r < m_cellsHeight; r++)
-        mp_cells[r] = mp_cells[r - 1] + m_cellsWidth;
-#endif
-
-    
-//    std::vector <std::vector<sCell>> v_cells(m_cellsHeight, std::vector<sCell>(m_cellsWidth));
-    for (auto r = 0; r < m_cellsHeight; r++)
-    {
-        for (auto c = 0; c < m_cellsWidth; c++)
-        {
-            mp_cells[r][c].setup(c * CELL_SIZE + CELL_SIZE / 2, r * CELL_SIZE + CELL_SIZE / 2);
-        }
-    }
-
 }
 
 //--------------------------------------------------------------
 cCellMatrix::~cCellMatrix()
 {
-    // free the array cells, and array of arrays
-    delete[] mp_cells[0];
-    delete[] mp_cells;
-    mp_cells = nullptr;
 }
 
 //--------------------------------------------------------------
 void cCellMatrix::setup()
 {
-    // complete setup of the cell the position of each life to be the center of the cell they're in
+    // set the center of each cell during construction
+    int xCellsCenter{ CELL_SIZE / 2 };
+    int yCellsCenter{ CELL_SIZE / 2 };
     for (auto r = 0; r < m_cellsHeight; r++)
     {
         for (auto c = 0; c < m_cellsWidth; c++)
-        {
-            mp_cells[r][c].setup(c * CELL_SIZE + CELL_SIZE / 2, r * CELL_SIZE + CELL_SIZE / 2);
-        }
+            m_cells[r][c].setup(c * CELL_SIZE + xCellsCenter, r * CELL_SIZE + yCellsCenter);
     }
 }
 
@@ -111,12 +88,12 @@ void cCellMatrix::reset()
         for (auto c = 0; c < m_cellsWidth; c++)
         {
             // kill off all non-base lifes
-            if (mp_cells[r][c].mp_life->getName() != cLife::getLifeName())
+            if (m_cells[r][c].mp_life->getName() != cLife::getLifeName())
             {
-                mp_cells[r][c].reset(c * CELL_SIZE + CELL_SIZE / 2, r * CELL_SIZE + CELL_SIZE / 2);
+                m_cells[r][c].reset();
             }
 
-            mp_cells[r][c].mp_life->addHealth(mp_cells[r][c].mp_life->getHealth() * -1);    // set health to 0
+            m_cells[r][c].mp_life->addHealth(m_cells[r][c].mp_life->getHealth() * -1);    // set health to 0
         }
     }
 }
@@ -136,7 +113,7 @@ void    cCellMatrix::draw()
     {
         for (auto c = 0; c < m_cellsWidth; c++)
         {
-            mp_cells[r][c].draw();
+            m_cells[r][c].mp_life->draw();
         }
     }
 }
@@ -146,8 +123,8 @@ cLife* cCellMatrix::setCellLife(int row, int col, cLife* pNewLife)
 {
     if ((nullptr == pNewLife ) || ((row < 0) || (row >= m_cellsHeight)) || ((col < 0) || (col >= m_cellsWidth)))
         return nullptr;
-    cLife* pOld = mp_cells[row][col].mp_life;
-    mp_cells[row][col].mp_life = pNewLife;
+    cLife* pOld = m_cells[row][col].mp_life;
+    m_cells[row][col].mp_life = pNewLife;
     // set the centre of the actual cell as the Life's position; the life class doesn't understand cell geometry
     pNewLife->setPosition(col * CELL_SIZE + CELL_SIZE / 2, row * CELL_SIZE + CELL_SIZE / 2);
 
@@ -168,18 +145,18 @@ void    cCellMatrix::update()
         for (auto c = 0, colLeft = c - 1, colRight = c + 1; c < m_cellsWidth; c++, colLeft++, colRight++)
         {
             // set the neighbours array - row above
-            neighbourLife[0] = (rowAbove >= 0 && colLeft >= 0) ? (mp_cells[rowAbove][colLeft]).mp_life : nullptr;
-            neighbourLife[1] = (rowAbove >= 0) ? (mp_cells[rowAbove][c]).mp_life : nullptr;
-            neighbourLife[2] = (rowAbove >= 0 && colRight < m_cellsWidth) ? (mp_cells[rowAbove][colRight]).mp_life : nullptr;
+            neighbourLife[0] = (rowAbove >= 0 && colLeft >= 0) ? (m_cells[rowAbove][colLeft]).mp_life : nullptr;
+            neighbourLife[1] = (rowAbove >= 0) ? (m_cells[rowAbove][c]).mp_life : nullptr;
+            neighbourLife[2] = (rowAbove >= 0 && colRight < m_cellsWidth) ? (m_cells[rowAbove][colRight]).mp_life : nullptr;
 
             // set the neighbours array - this row
-            neighbourLife[3] = (colLeft >= 0) ? (mp_cells[r][colLeft]).mp_life : nullptr;
-            neighbourLife[4] = (colRight < m_cellsWidth) ? (mp_cells[r][colRight]).mp_life : nullptr;
+            neighbourLife[3] = (colLeft >= 0) ? (m_cells[r][colLeft]).mp_life : nullptr;
+            neighbourLife[4] = (colRight < m_cellsWidth) ? (m_cells[r][colRight]).mp_life : nullptr;
 
             // set the neighbours array - row below
-            neighbourLife[5] = (rowBelow < m_cellsHeight&& colLeft >= 0) ? (mp_cells[rowBelow][colLeft]).mp_life : nullptr;
-            neighbourLife[6] = (rowBelow < m_cellsHeight) ? (mp_cells[rowBelow][c]).mp_life : nullptr;
-            neighbourLife[7] = (rowBelow < m_cellsHeight&& colRight < m_cellsWidth) ? (mp_cells[rowBelow][colRight]).mp_life : nullptr;;
+            neighbourLife[5] = (rowBelow < m_cellsHeight&& colLeft >= 0) ? (m_cells[rowBelow][colLeft]).mp_life : nullptr;
+            neighbourLife[6] = (rowBelow < m_cellsHeight) ? (m_cells[rowBelow][c]).mp_life : nullptr;
+            neighbourLife[7] = (rowBelow < m_cellsHeight&& colRight < m_cellsWidth) ? (m_cells[rowBelow][colRight]).mp_life : nullptr;;
 
 #if 0   // debugging
             if (mp_cells[r][c].mp_life->isAlive())
@@ -193,7 +170,7 @@ void    cCellMatrix::update()
 #endif
             // now that neighbours are correct, run simulation for life at this cell
             // the result is the change in health to be applied to the life at this cell, after all cells have been checked
-            mp_cells[r][c].m_healthChange = mp_cells[r][c].mp_life->simulate(neighbourLife);
+            m_cells[r][c].m_healthChange = m_cells[r][c].mp_life->simulate(neighbourLife);
         }
     }
 
@@ -205,8 +182,8 @@ void    cCellMatrix::update()
     {
         for (auto c = 0, colLeft = c - 1, colRight = c + 1; c < m_cellsWidth; c++, colLeft++, colRight++)
         {
-            mp_cells[r][c].mp_life->addHealth(mp_cells[r][c].m_healthChange);
-            mp_cells[r][c].m_healthChange = 0;
+            m_cells[r][c].mp_life->addHealth(m_cells[r][c].m_healthChange);
+            m_cells[r][c].m_healthChange = 0;
         }
     }
 }
@@ -220,7 +197,7 @@ int     cCellMatrix::getLivingCellCount(void) const
     {
         for (auto c = 0; c < m_cellsWidth; c++)
         {
-            if (mp_cells[r][c].mp_life->isAlive())
+            if (m_cells[r][c].mp_life->isAlive())
                 count++;
         }
     }
