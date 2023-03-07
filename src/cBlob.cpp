@@ -9,6 +9,7 @@ cBlob::cBlob(int xpos, int ypos)
 {
 	m_color = ofColor::blueSteel;
 	m_health = 1;
+	m_drawSize += 3;
 }
 
 //--------------------------------------------------------------
@@ -16,7 +17,7 @@ void cBlob::draw()
 {
 	ofFill();
 	ofSetColor(m_color);
-    ofDrawCircle(m_xPos, m_yPos, m_drawSize);
+    ofDrawCircle(m_xCentre, m_yCentre, m_drawSize);
 }
 
 //--------------------------------------------------------------

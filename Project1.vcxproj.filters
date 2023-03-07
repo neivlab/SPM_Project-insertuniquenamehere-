@@ -46,7 +46,7 @@
     <ClCompile Include="src\cCellMatrix.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\cCellQuery.cpp">
+    <ClCompile Include="src\iCellQuery.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
@@ -113,7 +113,7 @@
     <ClInclude Include="src\cCellMatrix.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\cCellQuery.h">
+    <ClInclude Include="src\iCellQuery.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

@@ -186,7 +186,7 @@
   <ItemGroup>
     <ClCompile Include="src\cBlob.cpp" />
     <ClCompile Include="src\cCellMatrix.cpp" />
-    <ClCompile Include="src\cCellQuery.cpp" />
+    <ClCompile Include="src\iCellQuery.cpp" />
     <ClCompile Include="src\cLife.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\ofApp.cpp" />
@@ -204,7 +204,7 @@
   <ItemGroup>
     <ClInclude Include="src\cBlob.h" />
     <ClInclude Include="src\cCellMatrix.h" />
-    <ClInclude Include="src\cCellQuery.h" />
+    <ClInclude Include="src\iCellQuery.h" />
     <ClInclude Include="src\cLife.h" />
     <ClInclude Include="src\ofApp.h" />
     <ClInclude Include="..\..\..\addons\ofxGui\src\ofxBaseGui.h" />

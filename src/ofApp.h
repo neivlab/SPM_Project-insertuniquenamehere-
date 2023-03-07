@@ -43,8 +43,8 @@ class ofApp : public ofBaseApp{
 		const int INITIAL_RESET_COUNT = 2;
 		const int RESET_FRAME_COUNT = 10;
 
+		void    generate0();
 		void    generate();
-		void    generate2();
 		cCellMatrix		m_cellMatrix{ ofGetWidth(), ofGetHeight() };
 		bool			m_runSim{ true };		// prevent sim from running until cells are displayed once
 		int				m_resetCountdown{ INITIAL_RESET_COUNT };

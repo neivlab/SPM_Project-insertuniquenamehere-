@@ -6,6 +6,26 @@
 // #include any other life class headers here
 
 
+/*
+A simple factory for multiple types of Life
+
+std::map of life "id"  to its spawn function
+
+A vector of pairs of <r, c> assembled by the chosen pattern
+then replace with derived class types using spawn method ?
+
+*/
+
+//--------------------------------------------------------------
+std::vector<std::pair<int, int>> lifeCellsList;
+
+typedef cLife* (*LifeSpawnFunction)(int x, int y);
+std::map<int, LifeSpawnFunction>    lifeFactory =
+{
+    {0, cLife::spawn },
+    {1, cBlob::spawn },
+};
+
 
 //--------------------------------------------------------------
 ofApp::ofApp()
@@ -18,58 +38,19 @@ ofApp::ofApp()
 void ofApp::setup() {
 
     ofSeedRandom();
-
     m_cellMatrix.setup();
 }
 
-#if 0
-cBlob* pBlob = new cBlob;
-pBlob->setup("Bob");
-
-// assign it to a cell - choose at random near the center
-int row = (m_cellMatrix.getHeight() / 2) + ofRandom(-m_cellMatrix.getHeight() / 10, m_cellMatrix.getHeight() / 10);
-int col = (m_cellMatrix.getWidth() / 2) + ofRandom(-m_cellMatrix.getWidth() / 10, m_cellMatrix.getWidth() / 10);
-
-cLife* pLife = m_cellMatrix.assignLife(row, col, pBlob);
-if (nullptr != pLife)
-delete pLife;
-
-// create a random number (4-7) of Blobs at a semi random distribution around the center
-for (int i = ofRandom(4, 7); i > 0; i--)
-{
-    //ofLog(OF_LOG_NOTICE, "pLife created at %d %d", x, y);
-}
-#endif
-
-#if 0
-
-how to implement a simple factory for multiple types ?
-map of id to spawn function
-
-vector of <r, c> assembled by the chosen pattern
-then replace with derived class types using spawn method ?
-
-
-#endif
-
-std::vector<std::pair<int, int>> lifeCellsList;
-
-typedef cLife* (*LifeSpawnFunction)(int x, int y);
-std::map<int, LifeSpawnFunction>    lifeFactory =
-{
-    {0, cLife::spawn }, 
-    {1, cBlob::spawn }, 
-};
 
 //--------------------------------------------------------------
-void    ofApp::generate()
+void    ofApp::generate0()
 {
     /// get a random r,c posiition in the matrix
     int anchorRow = (int)ofRandom(m_cellMatrix.getHeight() * 0.1, m_cellMatrix.getHeight() * 0.8f);
     int anchorCol = (int)ofRandom(m_cellMatrix.getWidth() * 0.1, m_cellMatrix.getWidth() * 0.8f);
 
     // starting with that cell, give it health and then do the same with the rest of the pattern
-    cLife* pLife = m_cellMatrix.getCellLife(anchorRow, anchorCol);
+    cLife* pLife = m_cellMatrix.getLifeAtPos(anchorRow, anchorCol);
     pLife->addHealth(1);
 
     lifeCellsList.clear();
@@ -89,9 +70,9 @@ void    ofApp::generate()
     {
     case Patterns::Blinker:
         pLife->addHealth(1);
-        pLife = m_cellMatrix.getCellLife(anchorRow + 1, anchorCol);
+        pLife = m_cellMatrix.getLifeAtPos(anchorRow + 1, anchorCol);
         pLife->addHealth(1);
-        pLife = m_cellMatrix.getCellLife(anchorRow + 2, anchorCol);
+        pLife = m_cellMatrix.getLifeAtPos(anchorRow + 2, anchorCol);
         pLife->addHealth(1);
 
         lifeCellsList.push_back(std::make_pair(anchorRow + 1, anchorCol));
@@ -99,33 +80,33 @@ void    ofApp::generate()
         break;
 
     case Patterns::Toad:
-        pLife = m_cellMatrix.getCellLife(anchorRow + 1, anchorCol);
+        pLife = m_cellMatrix.getLifeAtPos(anchorRow + 1, anchorCol);
         pLife->addHealth(1);
-        pLife = m_cellMatrix.getCellLife(anchorRow + 2, anchorCol);
+        pLife = m_cellMatrix.getLifeAtPos(anchorRow + 2, anchorCol);
         pLife->addHealth(1);
-        pLife = m_cellMatrix.getCellLife(anchorRow + 1, anchorCol+1);
+        pLife = m_cellMatrix.getLifeAtPos(anchorRow + 1, anchorCol+1);
         pLife->addHealth(1);
-        pLife = m_cellMatrix.getCellLife(anchorRow + 2, anchorCol+1);
+        pLife = m_cellMatrix.getLifeAtPos(anchorRow + 2, anchorCol+1);
         pLife->addHealth(1);
-        pLife = m_cellMatrix.getCellLife(anchorRow + 3, anchorCol+1);
+        pLife = m_cellMatrix.getLifeAtPos(anchorRow + 3, anchorCol+1);
         pLife->addHealth(1);
         break;
 
     default:
     case Patterns::Peak:
         pLife->addHealth(1);
-        pLife = m_cellMatrix.getCellLife(anchorRow, anchorCol + 1);
+        pLife = m_cellMatrix.getLifeAtPos(anchorRow, anchorCol + 1);
         pLife->addHealth(1);
-        pLife = m_cellMatrix.getCellLife(anchorRow, anchorCol + 2);
+        pLife = m_cellMatrix.getLifeAtPos(anchorRow, anchorCol + 2);
         pLife->addHealth(1);
-        pLife = m_cellMatrix.getCellLife(anchorRow - 1, anchorCol + 1);
+        pLife = m_cellMatrix.getLifeAtPos(anchorRow - 1, anchorCol + 1);
         pLife->addHealth(1);
         break;
     }
 }
 
 //--------------------------------------------------------------
-void    ofApp::generate2()
+void    ofApp::generate()
 {
     /// get a random r,c posiition in the matrix
     int anchorRow = (int)ofRandom(m_cellMatrix.getHeight() * 0.1, m_cellMatrix.getHeight() * 0.8f);
@@ -135,12 +116,12 @@ void    ofApp::generate2()
     lifeCellsList.push_back(std::make_pair(anchorRow, anchorCol));
 
     int pattern = ofRandom(Patterns::_First, Patterns::_Last);
-# if 1 // debug - force specific patterns
+# if 0 // debug - force specific patterns
     //pattern = Patterns::Blinker;
     //pattern = Patterns::Beacon;
     //pattern = Patterns::Peak;
     //pattern = Patterns::Glider;
-    pattern = Patterns::Toad;
+    //pattern = Patterns::Toad;
 #endif
 
     switch (pattern)
@@ -185,12 +166,12 @@ void    ofApp::generate2()
     }
 
     // spawn randomly chosen life at the cells in the vector
-    int life = ofRandom(0, lifeFactory.size() - 1);
+    int lifeId = ofRandom(0, lifeFactory.size() - 1);
+
     for (auto& pair : lifeCellsList)
     {
-        lifeFactory[life](pair.first, pair.second);
-        //pLife->addHealth(1);
-
+        cLife * pLife = lifeFactory[lifeId](m_cellMatrix.getColX(pair.second), m_cellMatrix.getRowY(pair.first));
+        m_cellMatrix.setLifeAtPos(pLife, pair.first, pair.second);
     }
 }
 
@@ -206,7 +187,7 @@ void ofApp::update(){
     // if there aren't any living cells after a fixed number of updates, generate some new Life
     if (m_cellMatrix.getLivingCellCount() == 0)
     {
-        if (--m_resetCountdown == 0)
+        if (--m_resetCountdown <= 0)
         {
             generate();
             return;

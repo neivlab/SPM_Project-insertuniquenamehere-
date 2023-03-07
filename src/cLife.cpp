@@ -4,31 +4,25 @@
 #include "ofMain.h"
 #include "cLife.h"
 
-#if _DEBUG
-int static pos2cell(int i)
-{
-   return (i - 16 / 2) / 16;
-}
-#endif
 
 const std::string   cLife::mk_LifeName{ "life" };
-//const int           cLife::mk_MaxLife{ 1 };
+iCellQuery*         cLife::msp_query{ nullptr };
 
 //--------------------------------------------------------------
 cLife::cLife(int x, int y)
-    : m_xPos{ x }, m_yPos{y}
+    : m_xCentre{ x }, m_yCentre{y}
 {
 }
 
 //--------------------------------------------------------------
 cLife::~cLife()
 {
-    m_health = -1;
+    m_health = 0;
 }
 
 //--------------------------------------------------------------
 cLife::cLife(const cLife& other)
-    : cLife{other.m_xPos, other.m_yPos}
+    : cLife{other.m_xCentre, other.m_yCentre }
 {
 }
 
@@ -39,21 +33,26 @@ cLife& cLife::operator=(const cLife& other)
         return *this;
     this->m_health = other.m_health;
     this->m_name = other.m_name;
-    this->m_xPos = other.m_xPos;
-    this->m_yPos = other.m_yPos;
+    this->m_xCentre = other.m_xCentre;
+    this->m_yCentre = other.m_yCentre;
     this->m_drawSize = other.m_drawSize;
     this->m_color = other.m_color;
     return *this;
 }
 
 //--------------------------------------------------------------
+void cLife::setup()
+{
+}
+
+//--------------------------------------------------------------
 void cLife::draw()
 {
-    if (m_health <= 0)
+    if (m_health == 0)
         return;
     ofFill();
     ofSetColor(m_color);
-    ofDrawRectangle(m_xPos - m_drawSize * .5, m_yPos - m_drawSize * .5, m_drawSize, m_drawSize);
+    ofDrawRectangle(m_xCentre - m_drawSize * .5, m_yCentre - m_drawSize * .5, m_drawSize, m_drawSize);
 }
 
 //--------------------------------------------------------------
@@ -78,7 +77,7 @@ int cLife::simulate(std::array<cLife*, 8>& simNeighbours)
         {
             return -1; // decrement health 
 #if _DEBUG
-            ofLog(OF_LOG_NOTICE, "death at r=%d,c=%d", pos2cell(m_yPos), pos2cell(m_xPos));
+            ofLog(OF_LOG_NOTICE, "death at x=%d,y=%d", m_xCentre, m_yCentre);
 #endif
         }
         break;
@@ -87,7 +86,7 @@ int cLife::simulate(std::array<cLife*, 8>& simNeighbours)
     case 2:
 #if _DEBUG
         if (isAlive())
-            ofLog(OF_LOG_NOTICE, "living at r=%d,c=%d", pos2cell(m_yPos), pos2cell(m_xPos));
+            ofLog(OF_LOG_NOTICE, "living at x=%d,y=%d", m_xCentre, m_yCentre);
 #endif
         break;
     
@@ -97,7 +96,7 @@ int cLife::simulate(std::array<cLife*, 8>& simNeighbours)
         if (!isAlive())
         {
 #if _DEBUG
-            ofLog(OF_LOG_NOTICE, "birth at r=%d,c=%d", pos2cell(m_yPos), pos2cell(m_xPos));
+            ofLog(OF_LOG_NOTICE, "birth at x=%d,y=%d", m_xCentre, m_yCentre);
 #endif
             return +1;
         }
@@ -105,7 +104,7 @@ int cLife::simulate(std::array<cLife*, 8>& simNeighbours)
         else
         {
 
-            ofLog(OF_LOG_NOTICE, "living at r=%d,c=%d", pos2cell(m_yPos), pos2cell(m_xPos));
+            ofLog(OF_LOG_NOTICE, "living at x=%d,y=%d", m_xCentre, m_yCentre);
         }
 #endif
         break;
@@ -122,30 +121,40 @@ void cLife::destroy()
 //--------------------------------------------------------------
 int  cLife::addHealth(int health) 
 { 
-    m_health += health;
+    m_healthChange += health;
+    return m_healthChange;
+}
+
+//--------------------------------------------------------------
+void cLife::updateHealth()
+{
+    m_health += m_healthChange;
+
     // for base life, limit health to 0 or 1
     m_health = (m_health < 0) ? 0 : (m_health > mk_MaxLife) ? mk_MaxLife : m_health;
-    return m_health;
+
+    m_healthChange = 0;
 }
+
 
 //--------------------------------------------------------------
 void cLife::setPosition(int x, int y)
 {
-    m_xPos = x;
-    m_yPos = y;
+    m_xCentre = x;
+    m_yCentre = y;
 }
 
 //--------------------------------------------------------------
 void cLife::getPosition(int& x, int& y)
 {
-    x = m_xPos;
-    y = m_yPos;
+    x = m_xCentre;
+    y = m_yCentre;
 }
 
 //--------------------------------------------------------------
-void  cLife::setupQuery(cCellQuery& query)
+void  cLife::setupQuery(iCellQuery& query)
 {
-    ms_query = &query;
+    msp_query = &query;
 }
 
 //--------------------------------------------------------------
