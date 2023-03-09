@@ -7,7 +7,7 @@
 
 
 /*
-A simple factory for multiple types of Life
+A simple factory pattern to create multiple types of Life at random
 
 std::map of life "id"  to its spawn function
 
@@ -15,15 +15,13 @@ A vector of pairs of <r, c> assembled by the chosen pattern
 then replace with derived class types using spawn method ?
 
 */
-
-//--------------------------------------------------------------
-std::vector<std::pair<int, int>> lifeCellsList;
-
 typedef cLife* (*LifeSpawnFunction)(int x, int y);
-std::map<int, LifeSpawnFunction>    lifeFactory =
+std::map<std::string, LifeSpawnFunction>    lifeFactory =
 {
-    {0, cLife::spawn },
-    {1, cBlob::spawn },
+    {cLife::getLifeName(), cLife::spawn },
+    {cBlob::getLifeName(), cBlob::spawn },
+
+    // your class' static getName function and spawn function get added here
 };
 
 
@@ -41,82 +39,19 @@ void ofApp::setup() {
     m_cellMatrix.setup();
 }
 
-
 //--------------------------------------------------------------
-void    ofApp::generate0()
+void    ofApp::createNewGeneration()
 {
     /// get a random r,c posiition in the matrix
     int anchorRow = (int)ofRandom(m_cellMatrix.getHeight() * 0.1, m_cellMatrix.getHeight() * 0.8f);
     int anchorCol = (int)ofRandom(m_cellMatrix.getWidth() * 0.1, m_cellMatrix.getWidth() * 0.8f);
 
-    // starting with that cell, give it health and then do the same with the rest of the pattern
-    cLife* pLife = m_cellMatrix.getLifeAtPos(anchorRow, anchorCol);
-    pLife->addHealth(1);
-
-    lifeCellsList.clear();
-    lifeCellsList.push_back(std::make_pair(anchorRow, anchorCol));
-
-
-    int pattern = ofRandom(Patterns::_First, Patterns::_Last);
-# if 1 // debug - force specific patterns
-    //pattern = Patterns::Blinker;
-    //pattern = Patterns::Beacon;
-    //pattern = Patterns::Peak;
-    //pattern = Patterns::Pulsar;
-    pattern = Patterns::Toad;
-#endif
-
-    switch (pattern)
-    {
-    case Patterns::Blinker:
-        pLife->addHealth(1);
-        pLife = m_cellMatrix.getLifeAtPos(anchorRow + 1, anchorCol);
-        pLife->addHealth(1);
-        pLife = m_cellMatrix.getLifeAtPos(anchorRow + 2, anchorCol);
-        pLife->addHealth(1);
-
-        lifeCellsList.push_back(std::make_pair(anchorRow + 1, anchorCol));
-        lifeCellsList.push_back(std::make_pair(anchorRow + 2, anchorCol));
-        break;
-
-    case Patterns::Toad:
-        pLife = m_cellMatrix.getLifeAtPos(anchorRow + 1, anchorCol);
-        pLife->addHealth(1);
-        pLife = m_cellMatrix.getLifeAtPos(anchorRow + 2, anchorCol);
-        pLife->addHealth(1);
-        pLife = m_cellMatrix.getLifeAtPos(anchorRow + 1, anchorCol+1);
-        pLife->addHealth(1);
-        pLife = m_cellMatrix.getLifeAtPos(anchorRow + 2, anchorCol+1);
-        pLife->addHealth(1);
-        pLife = m_cellMatrix.getLifeAtPos(anchorRow + 3, anchorCol+1);
-        pLife->addHealth(1);
-        break;
-
-    default:
-    case Patterns::Peak:
-        pLife->addHealth(1);
-        pLife = m_cellMatrix.getLifeAtPos(anchorRow, anchorCol + 1);
-        pLife->addHealth(1);
-        pLife = m_cellMatrix.getLifeAtPos(anchorRow, anchorCol + 2);
-        pLife->addHealth(1);
-        pLife = m_cellMatrix.getLifeAtPos(anchorRow - 1, anchorCol + 1);
-        pLife->addHealth(1);
-        break;
-    }
-}
-
-//--------------------------------------------------------------
-void    ofApp::generate()
-{
-    /// get a random r,c posiition in the matrix
-    int anchorRow = (int)ofRandom(m_cellMatrix.getHeight() * 0.1, m_cellMatrix.getHeight() * 0.8f);
-    int anchorCol = (int)ofRandom(m_cellMatrix.getWidth() * 0.1, m_cellMatrix.getWidth() * 0.8f);
-
-    lifeCellsList.clear();
+    static std::vector<std::pair<int, int>> lifeCellsList;
     lifeCellsList.push_back(std::make_pair(anchorRow, anchorCol));
 
     int pattern = ofRandom(Patterns::_First, Patterns::_Last);
-# if 0 // debug - force specific patterns
+#ifdef _DEV_DEBUG
+    // debug - force specific patterns
     //pattern = Patterns::Blinker;
     //pattern = Patterns::Beacon;
     //pattern = Patterns::Peak;
@@ -166,13 +101,17 @@ void    ofApp::generate()
     }
 
     // spawn randomly chosen life at the cells in the vector
-    int lifeId = ofRandom(0, lifeFactory.size() - 1);
-
+    std::map<std::string, LifeSpawnFunction>::const_iterator itr = lifeFactory.begin();
+    std::advance(itr, ofRandom(0, lifeFactory.size() - 1));
+    std::string lifeName{ itr->first };
+    // force lifeName to be "Life"
+    lifeName = cLife::getLifeName();
     for (auto& pair : lifeCellsList)
     {
-        cLife * pLife = lifeFactory[lifeId](m_cellMatrix.getColX(pair.second), m_cellMatrix.getRowY(pair.first));
+        cLife * pLife = lifeFactory[lifeName](m_cellMatrix.getColX(pair.second), m_cellMatrix.getRowY(pair.first));
         m_cellMatrix.setLifeAtPos(pLife, pair.first, pair.second);
     }
+    lifeCellsList.clear();
 }
 
 
@@ -189,7 +128,7 @@ void ofApp::update(){
     {
         if (--m_resetCountdown <= 0)
         {
-            generate();
+            createNewGeneration();
             return;
         }
     }

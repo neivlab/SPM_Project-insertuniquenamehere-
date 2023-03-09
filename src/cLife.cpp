@@ -56,18 +56,48 @@ void cLife::draw()
 }
 
 //--------------------------------------------------------------
-int cLife::simulate(std::array<cLife*, 8>& simNeighbours)
+void cLife::simulate(const std::vector<cLife*>& simNeighbours)
 {
-    size_t neighbours{ 0 };
+    // Setup: check all the neighbouring cell passed to see if they're alive, and if so what type
+    NeighbourClassMap neighbourMap = countNeighbours(simNeighbours);
+
+    // 2. apply simuation rules here - result is the pending change to cell's health
+    //    add code here if needed to call additional life functions
+    int healthChange = interactWithNeighbours(simNeighbours, neighbourMap);
+    addPendingHealthChange(healthChange);
+
+    // the result is the change in health to be applied to the life at this cell, after all cells have been checked
+//m_life[r][c]->addHealth(m_life[r][c]->simulate(neighbourLife));
+
+}
+
+//--------------------------------------------------------------
+NeighbourClassMap cLife::countNeighbours(const std::vector<cLife*>& simNeighbours)
+{
+    // map of neighbor classes for each type, how many alive?
+    NeighbourClassMap livingNeighbours;
     for (cLife* pLife : simNeighbours)
     {
         if (nullptr == pLife)
             continue;
         if (pLife->isAlive())
-            neighbours++;
+        {
+            livingNeighbours[pLife->getName()]++;
+        }
     }
+    return livingNeighbours;
+}
 
-    switch (neighbours)
+//--------------------------------------------------------------
+int cLife::interactWithNeighbours(const std::vector<cLife*>& simNeighbours, NeighbourClassMap& livingNeighbours)
+{
+    // count the number of live neighbors this cell has; go through the map
+    size_t livingNeighbourCount{ 0 };
+    for (auto life : livingNeighbours)
+        livingNeighbourCount += life.second;
+
+    int healthChange{ 0 };
+    switch (livingNeighbourCount)
     {
     // over/under population if neighbours < 2 or > 3
     default:
@@ -75,8 +105,8 @@ int cLife::simulate(std::array<cLife*, 8>& simNeighbours)
     case 1:
         if (isAlive())
         {
-            return -1; // decrement health 
-#if _DEBUG
+            healthChange = -1; // decrement health 
+#ifdef _DEV_DEBUG
             ofLog(OF_LOG_NOTICE, "death at x=%d,y=%d", m_xCentre, m_yCentre);
 #endif
         }
@@ -84,7 +114,7 @@ int cLife::simulate(std::array<cLife*, 8>& simNeighbours)
 
     // if alive, this life lives on if 2 neighbours - do nothing
     case 2:
-#if _DEBUG
+#ifdef _DEV_DEBUG
         if (isAlive())
             ofLog(OF_LOG_NOTICE, "living at x=%d,y=%d", m_xCentre, m_yCentre);
 #endif
@@ -95,12 +125,12 @@ int cLife::simulate(std::array<cLife*, 8>& simNeighbours)
         // if !alive, this life springs to life - as if through reproduction of the neighbours
         if (!isAlive())
         {
-#if _DEBUG
+#ifdef _DEV_DEBUG
             ofLog(OF_LOG_NOTICE, "birth at x=%d,y=%d", m_xCentre, m_yCentre);
 #endif
-            return +1;
+            healthChange = 1;
         }
-#if _DEBUG
+#ifdef _DEV_DEBUG
         else
         {
 
@@ -108,9 +138,8 @@ int cLife::simulate(std::array<cLife*, 8>& simNeighbours)
         }
 #endif
         break;
-
     }
-    return 0;   // no change
+    return healthChange;   // no change
 }
 
 //--------------------------------------------------------------
@@ -119,19 +148,21 @@ void cLife::destroy()
 }
 
 //--------------------------------------------------------------
-int  cLife::addHealth(int health) 
+int  cLife::addPendingHealthChange(int health)
 { 
     m_healthChange += health;
+    if (m_healthChange > 0)
+        return m_healthChange;
     return m_healthChange;
 }
 
 //--------------------------------------------------------------
-void cLife::updateHealth()
+void cLife::applySimulationChanges()
 {
     m_health += m_healthChange;
 
     // for base life, limit health to 0 or 1
-    m_health = (m_health < 0) ? 0 : (m_health > mk_MaxLife) ? mk_MaxLife : m_health;
+    m_health = (m_health < 0) ? 0 : (m_health > MAX_LIFE) ? MAX_LIFE : m_health;
 
     m_healthChange = 0;
 }
@@ -161,7 +192,7 @@ void  cLife::setupQuery(iCellQuery& query)
 cLife* cLife::spawn(int x, int y)
 {
     cLife* pLife = new cLife(x, y);
-    pLife->addHealth(1);
+    pLife->addPendingHealthChange(1);
     return pLife;
 }
 

@@ -1,7 +1,7 @@
 #include "ofMain.h"
 #include "cBlob.h"
 
-const std::string  cBlob::m_LifeName{ "blob" };
+//const std::string  cBlob::m_LifeName{ "blob" };
 
 //--------------------------------------------------------------
 cBlob::cBlob(int xpos, int ypos)
@@ -25,7 +25,7 @@ cLife* cBlob::spawn(int x, int y)
 {
 	cBlob* pBlob = new cBlob(x, y);
 	pBlob->setup();
-	pBlob->addHealth(1);
+	pBlob->addPendingHealthChange(1);
 	return pBlob;
 }
 
