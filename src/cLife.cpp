@@ -12,6 +12,7 @@ iCellQuery*         cLife::msp_query{ nullptr };
 cLife::cLife(int x, int y)
     : m_xCentre{ x }, m_yCentre{y}
 {
+    m_health = 0;
 }
 
 //--------------------------------------------------------------
@@ -24,6 +25,7 @@ cLife::~cLife()
 cLife::cLife(const cLife& other)
     : cLife{other.m_xCentre, other.m_yCentre }
 {
+    m_health = 2;
 }
 
 //--------------------------------------------------------------

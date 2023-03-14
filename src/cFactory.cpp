@@ -29,7 +29,7 @@ void    cFactory::setDefaultLife(const std::string& name)
 }
 
 //--------------------------------------------------------------
-std::string cFactory::getRandomLife()
+std::string cFactory::getRandomLifeName()
 {
     // select a randomly chosen life from the map
     std::map<std::string, LifeSpawnFunction>::const_iterator itr = m_spawnerMap.begin();

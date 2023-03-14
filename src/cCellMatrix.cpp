@@ -62,7 +62,7 @@ void cCellMatrix::reset()
         for (auto c = 0; c < m_lifeWidth; c++)
         {
             // kill off all non-base lifes; replace with base life
-            if (m_life[r][c]->getName() != mp_factory->getDefaultLife())
+            if (m_life[r][c]->getName() != mp_factory->getDefaultLifeName())
             {
                 delete  m_life[r][c];
                 m_life[r][c] = mp_factory->spawnDefault(c * m_cellSize + xCellsCenter, r * m_cellSize + yCellsCenter, 0);

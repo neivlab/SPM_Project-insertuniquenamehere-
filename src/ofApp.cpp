@@ -22,7 +22,7 @@ void ofApp::setup() {
     m_factory.registerClassSpawner(cBlob::getLifeName(), cBlob::spawn);
 
     // TODO: set the default Life type for all cells here
-    m_factory.setDefaultLife(cLife::getLifeName());
+    m_factory.setDefaultLife(cBlob::getLifeName());
 
     // share the Factory with the CellMatrix
     m_cellMatrix.setup(&m_factory);
@@ -90,13 +90,15 @@ void    ofApp::createNewGeneration()
         break;
     }
 
+    // TODO - choose the life type to spawn with a generation
     // select a randomly chosen life to spawn at the cells in the vector
-    std::string lifeName = m_factory.getRandomLife();
+    //std::string lifeName = m_factory.getRandomLife();
+    std::string lifeName = m_factory.getDefaultLifeName();
 
 #ifdef _DEV_DEBUG
     // override the randomness and force the created life to be ...
     // lifeName = cLife::getLifeName();
-    // lifeName = cBlob::getLifeName();
+    lifeName = cBlob::getLifeName();
 #endif
     for (auto& pair : lifeCellsList)
     {

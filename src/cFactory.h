@@ -24,8 +24,8 @@ public:
     ~cFactory();
     void    registerClassSpawner(const std::string& name, LifeSpawnFunction spawnFunction);
     void    setDefaultLife(const std::string& name);
-    std::string  getDefaultLife() { return m_defaultName; }
-    std::string  getRandomLife();
+    std::string  getDefaultLifeName() { return m_defaultName; }
+    std::string  getRandomLifeName();
     cLife*  spawn(std::string, int x, int y, int health);
     cLife*  spawnDefault(int x, int y, int health);
 
