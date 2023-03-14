@@ -5,18 +5,24 @@
 #include "ofMain.h"
 #include "iCellQuery.h"
 
+// forward declaration
+class cLife;
+
 using NeighbourClassMap = std::map<std::string, size_t>;
 
 class cLife
 {
 public:   // accessible by any caller
+    // note - each class that derives from cLife should have its own name and spawn()
+    static std::string getLifeName() { return mk_LifeName; }
+    static cLife* spawn(int x, int y, int health=0);
+
     cLife(int xCentre, int yCentre);
     virtual ~cLife();   
     cLife(const cLife& other);                      // copy constructor
     virtual cLife& operator=(const cLife& other);    // copy assignment
     virtual void setup();
     virtual void reset() { m_health = 0; }
-    virtual void destroy();
     virtual void simulate(const std::vector<cLife*>& simNeighbours);
     virtual void applySimulationChanges();
     virtual void draw();
@@ -26,10 +32,6 @@ public:   // accessible by any caller
     virtual void setPosition(int x, int y);
     virtual void getPosition(int& x, int& y);
     
-    // note - each class that derives from cLife should have its own name and spawn()
-    static std::string getLifeName() { return mk_LifeName; }
-    static cLife* spawn(int x, int y);   
-
     // used only by the CellMatrix to register the Query interface
     static void setupQuery(iCellQuery& query);
 

@@ -61,14 +61,14 @@ void cLife::simulate(const std::vector<cLife*>& simNeighbours)
     // Setup: check all the neighbouring cell passed to see if they're alive, and if so what type
     NeighbourClassMap neighbourMap = countNeighbours(simNeighbours);
 
-    // 2. apply simuation rules here - result is the pending change to cell's health
+    // 2. apply simuation rules here - resulting is the pending change to cell's health
     //    add code here if needed to call additional life functions
+
+    // NOTE: The base cLife type will only spawn more base cLife! To make it spawn 
+    //  other types, this code must be changed, or the default life class must be changed
+    //  to one that can check the surrounding life types
     int healthChange = interactWithNeighbours(simNeighbours, neighbourMap);
     addPendingHealthChange(healthChange);
-
-    // the result is the change in health to be applied to the life at this cell, after all cells have been checked
-//m_life[r][c]->addHealth(m_life[r][c]->simulate(neighbourLife));
-
 }
 
 //--------------------------------------------------------------
@@ -143,11 +143,6 @@ int cLife::interactWithNeighbours(const std::vector<cLife*>& simNeighbours, Neig
 }
 
 //--------------------------------------------------------------
-void cLife::destroy()
-{
-}
-
-//--------------------------------------------------------------
 int  cLife::addPendingHealthChange(int health)
 { 
     m_healthChange += health;
@@ -189,10 +184,10 @@ void  cLife::setupQuery(iCellQuery& query)
 }
 
 //--------------------------------------------------------------
-cLife* cLife::spawn(int x, int y)
+cLife* cLife::spawn(int x, int y, int health)
 {
     cLife* pLife = new cLife(x, y);
-    pLife->addPendingHealthChange(1);
+    pLife->addPendingHealthChange(health);
     return pLife;
 }
 

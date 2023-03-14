@@ -5,30 +5,10 @@
 #include "cBlob.h"
 // #include any other life class headers here
 
-
-/*
-A simple factory pattern to create multiple types of Life at random
-
-std::map of life "id"  to its spawn function
-
-A vector of pairs of <r, c> assembled by the chosen pattern
-then replace with derived class types using spawn method ?
-
-*/
-typedef cLife* (*LifeSpawnFunction)(int x, int y);
-std::map<std::string, LifeSpawnFunction>    lifeFactory =
-{
-    {cLife::getLifeName(), cLife::spawn },
-    {cBlob::getLifeName(), cBlob::spawn },
-
-    // your class' static getName function and spawn function get added here
-};
-
-
 //--------------------------------------------------------------
 ofApp::ofApp()
     : ofBaseApp(),
-    m_cellMatrix{ ofGetWidth(), ofGetHeight() }
+    m_cellMatrix{ CELL_SIZE, ofGetWidth(), ofGetHeight() }
 {
 }
 
@@ -36,8 +16,18 @@ ofApp::ofApp()
 void ofApp::setup() {
 
     ofSeedRandom();
-    m_cellMatrix.setup();
+    
+    // TODO: register your class here to enable it to be spawned
+    m_factory.registerClassSpawner(cLife::getLifeName(), cLife::spawn);
+    m_factory.registerClassSpawner(cBlob::getLifeName(), cBlob::spawn);
+
+    // TODO: set the default Life type for all cells here
+    m_factory.setDefaultLife(cLife::getLifeName());
+
+    // share the Factory with the CellMatrix
+    m_cellMatrix.setup(&m_factory);
 }
+
 
 //--------------------------------------------------------------
 void    ofApp::createNewGeneration()
@@ -100,15 +90,17 @@ void    ofApp::createNewGeneration()
         break;
     }
 
-    // spawn randomly chosen life at the cells in the vector
-    std::map<std::string, LifeSpawnFunction>::const_iterator itr = lifeFactory.begin();
-    std::advance(itr, ofRandom(0, lifeFactory.size() - 1));
-    std::string lifeName{ itr->first };
-    // force lifeName to be "Life"
-    lifeName = cLife::getLifeName();
+    // select a randomly chosen life to spawn at the cells in the vector
+    std::string lifeName = m_factory.getRandomLife();
+
+#ifdef _DEV_DEBUG
+    // override the randomness and force the created life to be ...
+    // lifeName = cLife::getLifeName();
+    // lifeName = cBlob::getLifeName();
+#endif
     for (auto& pair : lifeCellsList)
     {
-        cLife * pLife = lifeFactory[lifeName](m_cellMatrix.getColX(pair.second), m_cellMatrix.getRowY(pair.first));
+        cLife * pLife = m_factory.spawn(lifeName, m_cellMatrix.getColX(pair.second), m_cellMatrix.getRowY(pair.first), 1);
         m_cellMatrix.setLifeAtPos(pLife, pair.first, pair.second);
     }
     lifeCellsList.clear();
@@ -136,7 +128,7 @@ void ofApp::update(){
         m_resetCountdown = RESET_FRAME_COUNT;
 
     // pause execution for a bit - 1.5 seconds
-    ofSleepMillis(1500);
+    ofSleepMillis(FRAME_DELAY_MS);
 }
 
 //--------------------------------------------------------------

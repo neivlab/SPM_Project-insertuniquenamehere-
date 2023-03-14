@@ -186,6 +186,7 @@
   <ItemGroup>
     <ClCompile Include="src\cBlob.cpp" />
     <ClCompile Include="src\cCellMatrix.cpp" />
+    <ClCompile Include="src\cFactory.cpp" />
     <ClCompile Include="src\iCellQuery.cpp" />
     <ClCompile Include="src\cLife.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -204,6 +205,7 @@
   <ItemGroup>
     <ClInclude Include="src\cBlob.h" />
     <ClInclude Include="src\cCellMatrix.h" />
+    <ClInclude Include="src\cFactory.h" />
     <ClInclude Include="src\iCellQuery.h" />
     <ClInclude Include="src\cLife.h" />
     <ClInclude Include="src\ofApp.h" />

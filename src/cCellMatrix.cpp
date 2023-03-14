@@ -1,6 +1,7 @@
 #include <array>
 #include "ofMain.h"
 #include "cCellMatrix.h"
+#include "cFactory.h"
 #include "cLife.h"
 
 
@@ -8,8 +9,8 @@
 // cCellMatrix constructor
 //  initialize the 2d array of cells; this actually means an array of arrays of (width) cells
 //  initialise the Query object the life classes can use to find out about life around themselves
-cCellMatrix::cCellMatrix(int width, int height)
-    : iCellQuery{},  m_lifeWidth{ width / CELL_SIZE }, m_lifeHeight{ height / CELL_SIZE },
+cCellMatrix::cCellMatrix(int cellSize, int width, int height)
+    : iCellQuery{}, m_cellSize{ cellSize }, m_lifeWidth{ width / cellSize }, m_lifeHeight{ height / cellSize },
     m_life { m_lifeHeight, std::vector<cLife*>{ (const unsigned int) m_lifeWidth, nullptr} }
 {
     cLife::setupQuery(*this);
@@ -34,16 +35,17 @@ cCellMatrix::~cCellMatrix()
 
 //--------------------------------------------------------------
 // create each Life and set the center position of each during construction
-void cCellMatrix::setup()
+void cCellMatrix::setup(cFactory* factory)
 {
-    
-    int xCellsCenter{ CELL_SIZE / 2 };
-    int yCellsCenter{ CELL_SIZE / 2 };
+    mp_factory = factory;
+
+    int xCellsCenter{ m_cellSize / 2 };
+    int yCellsCenter{ m_cellSize / 2 };
     for (auto r = 0; r < m_lifeHeight; r++)
     {
         for (auto c = 0; c < m_lifeWidth; c++)
         {
-            m_life[r][c] = new cLife(c * CELL_SIZE + xCellsCenter, r * CELL_SIZE + yCellsCenter);
+            m_life[r][c] = mp_factory->spawnDefault(c * m_cellSize + xCellsCenter, r * m_cellSize + yCellsCenter, 0);
             m_life[r][c]->setup();
         }
     }
@@ -53,17 +55,17 @@ void cCellMatrix::setup()
 // kills all life in cells; resets life to base cLife with health 0
 void cCellMatrix::reset()
 {
-    int xCellsCenter{ CELL_SIZE / 2 };
-    int yCellsCenter{ CELL_SIZE / 2 };
+    int xCellsCenter{ m_cellSize / 2 };
+    int yCellsCenter{ m_cellSize / 2 };
     for (auto r = 0; r < m_lifeHeight; r++)
     {
         for (auto c = 0; c < m_lifeWidth; c++)
         {
             // kill off all non-base lifes; replace with base life
-            if (m_life[r][c]->getName() != cLife::getLifeName())
+            if (m_life[r][c]->getName() != mp_factory->getDefaultLife())
             {
                 delete  m_life[r][c];
-                m_life[r][c] = new cLife(c * CELL_SIZE + xCellsCenter, r * CELL_SIZE + yCellsCenter);
+                m_life[r][c] = mp_factory->spawnDefault(c * m_cellSize + xCellsCenter, r * m_cellSize + yCellsCenter, 0);
                 m_life[r][c]->setup();
             }
             m_life[r][c]->reset();
@@ -77,9 +79,9 @@ void    cCellMatrix::draw()
 {
     // draw the grid
     ofSetColor(ofColor::gray);
-    for (auto x = CELL_SIZE; x < ofGetWidth(); x += CELL_SIZE)
+    for (auto x = m_cellSize; x < ofGetWidth(); x += m_cellSize)
         ofDrawLine(x, 0, x, ofGetHeight());
-    for (auto y = CELL_SIZE; y < ofGetHeight(); y += CELL_SIZE)
+    for (auto y = m_cellSize; y < ofGetHeight(); y += m_cellSize)
         ofDrawLine(0, y, ofGetWidth(), y);
 
     for (auto row : m_life)
@@ -133,7 +135,6 @@ void    cCellMatrix::update()
             m_life[r][c]->applySimulationChanges();
         }
     }
-
 }
 
 //--------------------------------------------------------------

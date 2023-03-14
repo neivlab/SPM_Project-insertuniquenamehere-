@@ -49,6 +49,9 @@
     <ClCompile Include="src\iCellQuery.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\cFactory.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -114,6 +117,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\iCellQuery.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cFactory.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
