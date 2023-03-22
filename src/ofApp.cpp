@@ -182,8 +182,21 @@ void ofApp::mousePressed(int x, int y, int button){
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseReleased(int x, int y, int button){
+void ofApp::mouseReleased(int x, int y, int button) {
+    // gets the row and column of the mouse click
+    int row = m_cellMatrix.getHeight() * y / ofGetWindowHeight();
+    int col = m_cellMatrix.getWidth() * x / ofGetWindowWidth();
 
+    if (row >= 0 && row < m_cellMatrix.getHeight() && col >= 0 && col < m_cellMatrix.getWidth()) {
+        if (button == 0) {
+            cLife* pLife = lifeFactory[cLife::getLifeName()](m_cellMatrix.getColX(col), m_cellMatrix.getRowY(row));
+            m_cellMatrix.setLifeAtPos(pLife, row, col);
+        }
+        else {
+            cLife* pLife = lifeFactory[cBlob::getLifeName()](m_cellMatrix.getColX(col), m_cellMatrix.getRowY(row));
+            m_cellMatrix.setLifeAtPos(pLife, row, col);
+        }
+    }
 }
 
 //--------------------------------------------------------------
