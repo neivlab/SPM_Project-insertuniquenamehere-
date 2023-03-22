@@ -189,15 +189,16 @@ void ofApp::mouseReleased(int x, int y, int button) {
 
     if (row >= 0 && row < m_cellMatrix.getHeight() && col >= 0 && col < m_cellMatrix.getWidth()) {
         if (button == 0) {
-            cLife* pLife = lifeFactory[cLife::getLifeName()](m_cellMatrix.getColX(col), m_cellMatrix.getRowY(row));
+            cLife* pLife = m_factory.spawn(cLife::getLifeName(), m_cellMatrix.getColX(col), m_cellMatrix.getRowY(row), 1);
             m_cellMatrix.setLifeAtPos(pLife, row, col);
         }
         else {
-            cLife* pLife = lifeFactory[cBlob::getLifeName()](m_cellMatrix.getColX(col), m_cellMatrix.getRowY(row));
+            cLife* pLife = m_factory.spawn(cBlob::getLifeName(), m_cellMatrix.getColX(col), m_cellMatrix.getRowY(row), 1);
             m_cellMatrix.setLifeAtPos(pLife, row, col);
         }
     }
 }
+
 
 //--------------------------------------------------------------
 void ofApp::mouseEntered(int x, int y){
