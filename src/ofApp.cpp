@@ -3,6 +3,7 @@
 #include "ofApp.h"
 #include "cLife.h"
 #include "cBlob.h"
+#include "cTracker.h"
 // #include any other life class headers here
 
 //--------------------------------------------------------------
@@ -20,6 +21,7 @@ void ofApp::setup() {
     // TODO: register your class here to enable it to be spawned
     m_factory.registerClassSpawner(cLife::getLifeName(), cLife::spawn);
     m_factory.registerClassSpawner(cBlob::getLifeName(), cBlob::spawn);
+    m_factory.registerClassSpawner(cTracker::getLifeName(), cTracker::spawn);
 
     // TODO: set the default Life type for all cells here
     m_factory.setDefaultLife(cBlob::getLifeName());
@@ -189,11 +191,11 @@ void ofApp::mouseReleased(int x, int y, int button) {
 
     if (row >= 0 && row < m_cellMatrix.getHeight() && col >= 0 && col < m_cellMatrix.getWidth()) {
         if (button == 0) {
-            cLife* pLife = m_factory.spawn(cLife::getLifeName(), m_cellMatrix.getColX(col), m_cellMatrix.getRowY(row), 1);
+            cLife* pLife = m_factory.spawn(cBlob::getLifeName(), m_cellMatrix.getColX(col), m_cellMatrix.getRowY(row), 1);
             m_cellMatrix.setLifeAtPos(pLife, row, col);
         }
         else {
-            cLife* pLife = m_factory.spawn(cBlob::getLifeName(), m_cellMatrix.getColX(col), m_cellMatrix.getRowY(row), 1);
+            cLife* pLife = m_factory.spawn(cTracker::getLifeName(), m_cellMatrix.getColX(col), m_cellMatrix.getRowY(row), 1);
             m_cellMatrix.setLifeAtPos(pLife, row, col);
         }
     }
