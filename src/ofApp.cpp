@@ -4,6 +4,7 @@
 #include "cLife.h"
 #include "cBlob.h"
 #include "cTracker.h"
+#include "cRgbcell.h"
 // #include any other life class headers here
 
 //--------------------------------------------------------------
@@ -22,6 +23,7 @@ void ofApp::setup() {
     m_factory.registerClassSpawner(cLife::getLifeName(), cLife::spawn);
     m_factory.registerClassSpawner(cBlob::getLifeName(), cBlob::spawn);
     m_factory.registerClassSpawner(cTracker::getLifeName(), cTracker::spawn);
+    m_factory.registerClassSpawner(cRgbcell::getLifeName(), cRgbcell::spawn);
 
     // TODO: set the default Life type for all cells here
     m_factory.setDefaultLife(cBlob::getLifeName());
@@ -94,7 +96,7 @@ void    ofApp::createNewGeneration()
 
     // TODO - choose the life type to spawn with a generation
     // select a randomly chosen life to spawn at the cells in the vector
-    //std::string lifeName = m_factory.getRandomLife();
+    //std::string lifeName = m_factory.getRandomLifeName();
     std::string lifeName = m_factory.getDefaultLifeName();
 
 #ifdef _DEV_DEBUG
@@ -159,10 +161,17 @@ void ofApp::keyReleased(int key){
     case ' ':   // spacebar/pause
         m_runSim = !m_runSim;
         break;
-
     case 'r':   // reset
         break;
-
+    case 'e':   // sets cell to rgb
+        cellname = cRgbcell::getLifeName();
+        break;
+    case 't':   // sets cell to tracker
+        cellname = cTracker::getLifeName();
+        break;
+    case 'b':   // sets cell to blob
+        cellname = cBlob::getLifeName();
+        break;
     default:    // ignore
         break;
     }
@@ -190,12 +199,14 @@ void ofApp::mouseReleased(int x, int y, int button) {
     int col = m_cellMatrix.getWidth() * x / ofGetWindowWidth();
 
     if (row >= 0 && row < m_cellMatrix.getHeight() && col >= 0 && col < m_cellMatrix.getWidth()) {
-        if (button == 0) {
-            cLife* pLife = m_factory.spawn(cBlob::getLifeName(), m_cellMatrix.getColX(col), m_cellMatrix.getRowY(row), 1);
+        if (cellname != "")
+        {
+            cLife* pLife = m_factory.spawn(cellname, m_cellMatrix.getColX(col), m_cellMatrix.getRowY(row), 1);
             m_cellMatrix.setLifeAtPos(pLife, row, col);
         }
-        else {
-            cLife* pLife = m_factory.spawn(cTracker::getLifeName(), m_cellMatrix.getColX(col), m_cellMatrix.getRowY(row), 1);
+        else
+        {
+            cLife* pLife = m_factory.spawn(cBlob::getLifeName(), m_cellMatrix.getColX(col), m_cellMatrix.getRowY(row), 1);
             m_cellMatrix.setLifeAtPos(pLife, row, col);
         }
     }
